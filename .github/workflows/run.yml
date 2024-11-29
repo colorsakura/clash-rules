@@ -1,0 +1,33 @@
+name: Auto Generate Rules Set for Clash
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 22 * * *"
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download Rules
+        run: |
+          curl -sSL -O https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/direct.txt
+          curl -sSL -O https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/proxy.txt
+          curl -sSL -O https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/gfw.txt
+      - name: Push to the release branch
+        run: |
+          cd publish || exit 1
+          git init
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b release
+          git commit -m "auto release"
+          git remote add origin "http://${{github.actor}}:${{secrets.GITHUB_TOKEN}}@github.com/${{github.repository}}"
+          git push -f origin release
+          
+
+
